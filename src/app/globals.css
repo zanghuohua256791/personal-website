@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-[#FAFAFA] text-[#1A1A1A] antialiased;
+  }
+}
+
+@layer components {
+  .prose-custom {
+    @apply prose prose-gray max-w-none prose-headings:font-semibold prose-headings:text-[#1A1A1A] prose-p:leading-relaxed prose-a:text-accent-600 prose-img:rounded-xl;
+  }
+}
