@@ -15,7 +15,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid bucket' }, { status: 400 })
   }
 
-  const fileName = `${Date.now()}-${file.name}`
+  const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+  const fileName = `${Date.now()}-${cleanFileName}`
   const arrayBuffer = await file.arrayBuffer()
 
   const { data, error } = await supabaseAdmin

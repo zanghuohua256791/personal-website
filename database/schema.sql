@@ -48,7 +48,9 @@ CREATE TABLE games (
   status      TEXT DEFAULT 'want_to_play' CHECK (status IN ('want_to_play', 'playing', 'completed', 'dropped')),
   rating      INTEGER CHECK (rating >= 1 AND rating <= 5),
   steam_url   TEXT,
-  notes       TEXT,
+  categories  TEXT[] DEFAULT '{}',
+  review      TEXT,
+  play_time   INTEGER DEFAULT 0,
   created_at  TIMESTAMPTZ DEFAULT now(),
   updated_at  TIMESTAMPTZ DEFAULT now()
 );

@@ -23,7 +23,7 @@ export default function AdminLogin() {
       })
 
       if (res.ok) {
-        router.refresh()
+        window.location.reload()
       } else {
         const data = await res.json()
         setError(data.error || '登录失败')

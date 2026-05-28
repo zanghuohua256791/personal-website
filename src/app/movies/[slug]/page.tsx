@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import type { Movie } from '@/lib/types'
 import { Star, Calendar, User, ArrowLeft } from 'lucide-react'
+import ImagePreview from '@/components/ImagePreview'
 
 export default function MovieDetailPage() {
   const params = useParams()
@@ -61,20 +62,22 @@ export default function MovieDetailPage() {
 
       <div className="flex flex-col gap-8 sm:flex-row">
         <div className="flex-shrink-0">
-          <div className="aspect-[2/3] w-48 overflow-hidden rounded-xl bg-gray-100 sm:w-56">
-            {movie.poster_url ? (
-              <img
-                src={movie.poster_url}
-                alt={movie.title}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-4xl text-gray-300">
-                🎬
-              </div>
-            )}
+            <div className="aspect-[2/3] w-48 overflow-hidden rounded-xl bg-gray-100 sm:w-56 relative">
+              {movie.poster_url ? (
+                <ImagePreview
+                  src={movie.poster_url}
+                  alt={movie.title}
+                  className="h-full w-full"
+                  aspectRatio="2/3"
+                  sizes="(max-width: 640px) 192px, 224px"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-4xl text-gray-300">
+                  🎬
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
         <div className="flex-1 space-y-4">
           <h1 className="text-4xl font-bold tracking-tight text-[#1A1A1A]">

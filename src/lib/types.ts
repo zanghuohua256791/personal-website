@@ -42,7 +42,9 @@ export interface Game {
   status: 'want_to_play' | 'playing' | 'completed' | 'dropped'
   rating: number | null
   steam_url: string | null
-  notes: string | null
+  categories: string[]
+  review: string | null
+  play_time: number | null
   created_at: string
   updated_at: string
 }

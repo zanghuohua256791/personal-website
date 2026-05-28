@@ -1,8 +1,10 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import type { Game, GameSession } from '@/lib/types'
 import { GAME_STATUS_MAP, GAME_STATUS_COLORS } from '@/lib/types'
 import { Clock, MapPin, ChevronRight } from 'lucide-react'
+import ImagePreview from '@/components/ImagePreview'
 
 export const revalidate = 3600
 
@@ -92,12 +94,16 @@ export default async function HomePage() {
                 target={game.steam_url ? '_blank' : undefined}
                 className="group overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
               >
-                <div className="aspect-[16/9] bg-gray-100 overflow-hidden">
+                <div className="aspect-[16/9] bg-gray-100 overflow-hidden relative">
                   {game.cover_url ? (
-                    <img
+                    <ImagePreview
                       src={game.cover_url}
                       alt={game.title}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="h-full w-full"
+                      aspectRatio="16/9"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      enablePreview={false}
+                      hoverScale
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center text-gray-300">

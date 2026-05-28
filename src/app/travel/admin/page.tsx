@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import AdminLayout from '@/components/AdminLayout'
 import ImageUpload from '@/components/ImageUpload'
+import TravelPhotoUpload from '@/components/TravelPhotoUpload'
 import type { Travel } from '@/lib/types'
-import { Plus, Edit, Trash2, X } from 'lucide-react'
+import { Plus, Edit, Trash2, X, Image as ImageIcon } from 'lucide-react'
 
 const emptyForm = {
   title: '',
@@ -16,12 +17,22 @@ const emptyForm = {
   cover_url: '',
 }
 
+interface TravelPhoto {
+  id?: string
+  url: string
+  caption: string
+  sort_order: number
+}
+
 export default function TravelAdminPage() {
   const [travels, setTravels] = useState<Travel[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<Travel | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [showForm, setShowForm] = useState(false)
+  const [photos, setPhotos] = useState<TravelPhoto[]>([])
+  const [showPhotos, setShowPhotos] = useState(false)
+  const [selectedTravelId, setSelectedTravelId] = useState<string | null>(null)
 
   const fetchTravels = async () => {
     const res = await fetch('/api/admin/travels')
@@ -33,6 +44,14 @@ export default function TravelAdminPage() {
   useEffect(() => {
     fetchTravels()
   }, [])
+
+  const fetchPhotos = async (travelId: string) => {
+    const res = await fetch(`/api/admin/travel-photos?travel_id=${travelId}`)
+    const data = await res.json()
+    if (Array.isArray(data)) {
+      setPhotos(data)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,11 +76,29 @@ export default function TravelAdminPage() {
     })
 
     if (res.ok) {
-      setForm(emptyForm)
-      setEditing(null)
-      setShowForm(false)
-      fetchTravels()
-    }
+       if (editing?.id) {
+         for (const photo of photos) {
+           if (!photo.id || photo.id.startsWith('temp_')) {
+             await fetch('/api/admin/travel-photos', {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({
+                 travel_id: editing.id,
+                 url: photo.url,
+                 caption: photo.caption,
+                 sort_order: photo.sort_order,
+               }),
+             })
+           }
+         }
+       }
+       
+       setForm(emptyForm)
+       setEditing(null)
+       setShowForm(false)
+       setPhotos([])
+       fetchTravels()
+     }
   }
 
   const handleEdit = (travel: Travel) => {
@@ -75,6 +112,7 @@ export default function TravelAdminPage() {
       content: travel.content || '',
       cover_url: travel.cover_url || '',
     })
+    setPhotos([])
     setShowForm(true)
   }
 
@@ -91,7 +129,14 @@ export default function TravelAdminPage() {
   const handleNew = () => {
     setEditing(null)
     setForm(emptyForm)
+    setPhotos([])
     setShowForm(true)
+  }
+
+  const openPhotoManager = (travel: Travel) => {
+    setSelectedTravelId(travel.id)
+    fetchPhotos(travel.id)
+    setShowPhotos(true)
   }
 
   return (
@@ -177,6 +222,16 @@ export default function TravelAdminPage() {
                 preview={form.cover_url}
               />
             </div>
+            {editing && (
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-600">相册图片</label>
+                <TravelPhotoUpload
+                  travelId={editing.id}
+                  initialPhotos={photos}
+                  onUpdate={setPhotos}
+                />
+              </div>
+            )}
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-600">正文（Markdown）</label>
               <textarea
@@ -225,6 +280,13 @@ export default function TravelAdminPage() {
                   <td className="px-6 py-3">
                     <div className="flex justify-end gap-2">
                       <button
+                        onClick={() => openPhotoManager(travel)}
+                        className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-[#1A1A1A]"
+                        title="相册管理"
+                      >
+                        <ImageIcon className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => handleEdit(travel)}
                         className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-[#1A1A1A]"
                       >
@@ -249,6 +311,31 @@ export default function TravelAdminPage() {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {showPhotos && selectedTravelId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">相册管理</h2>
+              <button
+                onClick={() => {
+                  setShowPhotos(false)
+                  setSelectedTravelId(null)
+                  setPhotos([])
+                }}
+                className="text-gray-400 hover:text-[#1A1A1A]"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <TravelPhotoUpload
+              travelId={selectedTravelId}
+              initialPhotos={photos}
+              onUpdate={setPhotos}
+            />
+          </div>
         </div>
       )}
     </AdminLayout>

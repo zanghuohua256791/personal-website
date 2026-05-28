@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import type { Movie } from '@/lib/types'
 import { Star, Calendar, User, Filter } from 'lucide-react'
+import ImagePreview from '@/components/ImagePreview'
 
 export default function MoviesPage() {
   const [movies, setMovies] = useState<Movie[]>([])
@@ -84,12 +86,16 @@ export default function MoviesPage() {
               href={`/movies/${movie.slug}`}
               className="group overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
             >
-              <div className="aspect-[2/3] bg-gray-100 overflow-hidden">
+              <div className="aspect-[2/3] bg-gray-100 overflow-hidden relative">
                 {movie.poster_url ? (
-                  <img
+                  <ImagePreview
                     src={movie.poster_url}
                     alt={movie.title}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="h-full w-full"
+                    aspectRatio="2/3"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    enablePreview={false}
+                    hoverScale
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center text-gray-300 text-4xl">

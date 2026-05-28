@@ -1,7 +1,9 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import type { Travel } from '@/lib/types'
 import { Calendar, MapPin } from 'lucide-react'
+import ImagePreview from '@/components/ImagePreview'
 
 export const revalidate = 3600
 
@@ -48,12 +50,15 @@ export default async function TravelPage() {
                     href={`/travel/${travel.slug}`}
                     className="group overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
                   >
-                    <div className="aspect-[4/3] bg-gray-100 overflow-hidden">
+                    <div className="aspect-[4/3] bg-gray-100 overflow-hidden relative">
                       {travel.cover_url ? (
-                        <img
+                        <ImagePreview
                           src={travel.cover_url}
                           alt={travel.title}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          className="h-full w-full"
+                          aspectRatio="4/3"
+                          enablePreview={false}
+                          hoverScale
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center text-gray-300">

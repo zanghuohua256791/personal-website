@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import type { Game } from '@/lib/types'
 import { GAME_STATUS_MAP, GAME_STATUS_COLORS } from '@/lib/types'
-import { Star, ExternalLink } from 'lucide-react'
+import { Star, ExternalLink, Clock } from 'lucide-react'
+import ImagePreview from '@/components/ImagePreview'
 
 const statusOptions = [
   { value: 'all', label: '全部' },
@@ -22,6 +23,16 @@ const platformOptions = [
   { value: 'Xbox', label: 'Xbox' },
   { value: 'PC', label: 'PC' },
 ]
+
+const formatPlayTime = (minutes: number | null) => {
+  if (!minutes || minutes === 0) return null
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  if (hours > 0) {
+    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
+  }
+  return `${mins}小时`
+}
 
 export default function GamesPage() {
   const [games, setGames] = useState<Game[]>([])
@@ -106,10 +117,14 @@ export default function GamesPage() {
             >
               <div className="aspect-[16/9] bg-gray-100 overflow-hidden relative">
                 {game.cover_url ? (
-                  <img
+                  <ImagePreview
                     src={game.cover_url}
                     alt={game.title}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="h-full w-full"
+                    aspectRatio="16/9"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    enablePreview={false}
+                    hoverScale
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center text-gray-300 text-3xl">
@@ -138,13 +153,30 @@ export default function GamesPage() {
                 {game.platform && game.platform.length > 0 && (
                   <p className="text-xs text-gray-400">{game.platform.join(' · ')}</p>
                 )}
-                {game.rating && (
-                  <div className="flex items-center gap-0.5">
-                    {renderStars(game.rating)}
+                {game.categories && game.categories.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {game.categories.map((cat) => (
+                      <span key={cat} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+                        {cat}
+                      </span>
+                    ))}
                   </div>
                 )}
-                {game.notes && (
-                  <p className="text-xs text-gray-400 line-clamp-2">{game.notes}</p>
+                <div className="flex items-center justify-between">
+                  {game.rating && (
+                    <div className="flex items-center gap-0.5">
+                      {renderStars(game.rating)}
+                    </div>
+                  )}
+                  {formatPlayTime(game.play_time) && (
+                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                      <Clock className="h-3 w-3" />
+                      {formatPlayTime(game.play_time)}
+                    </div>
+                  )}
+                </div>
+                {game.review && (
+                  <p className="text-xs text-gray-400 line-clamp-2">{game.review}</p>
                 )}
               </div>
             </div>
