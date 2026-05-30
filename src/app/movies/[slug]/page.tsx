@@ -16,7 +16,9 @@ export default function MovieDetailPage() {
     fetch('/api/movies')
       .then((res) => res.json())
       .then((data) => {
-        const found = (data as Movie[]).find((m) => m.slug === params.slug)
+        const found = (data as Movie[]).find(
+          (m) => m.slug === params.slug || m.id === params.slug
+        )
         setMovie(found || null)
         setLoading(false)
       })

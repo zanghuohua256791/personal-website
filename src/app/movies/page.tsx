@@ -132,7 +132,7 @@ export default function MoviesPage() {
             {paginatedMovies.map((movie) => (
             <Link
               key={movie.id}
-              href={`/movies/${movie.slug}`}
+              href={`/movies/${movie.slug || movie.id}`}
               className="group overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
             >
               <div className="aspect-[2/3] bg-gray-100 overflow-hidden relative">

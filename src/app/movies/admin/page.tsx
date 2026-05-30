@@ -42,11 +42,15 @@ export default function MovieAdminPage() {
   const [currentPage, setCurrentPage] = useState(1)
 
   const generateSlug = (text: string) => {
+    // \u5982\u679c\u662f\u4e2d\u6587\uff0c\u4f7f\u7528\u65f6\u95f4\u6233+\u968f\u673a\u6570\u751f\u6210 slug
+    if (/[\u4e00-\u9fa5]/.test(text)) {
+      return `movie-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
+    }
     return text
       .toLowerCase()
       .trim()
       .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9\u4e00-\u9fa5-]/g, '')
+      .replace(/[^a-z0-9-]/g, '')
       .replace(/-+/g, '-')
   }
 
