@@ -143,7 +143,6 @@ export default function GameAdminPage() {
       steam_url: `https://store.steampowered.com/app/${item.appid}`,
     }));
 
-    setFetchingCover(true);
     try {
       const [coverUrl, detailsRes] = await Promise.all([
         fetchSteamCover(`https://store.steampowered.com/app/${item.appid}`),
@@ -160,8 +159,6 @@ export default function GameAdminPage() {
         categories,
       }));
     } catch {
-    } finally {
-      setFetchingCover(false);
     }
   }, []);
 
