@@ -5,7 +5,7 @@ import type { Travel } from '@/lib/types'
 import { Calendar, MapPin } from 'lucide-react'
 import ImagePreview from '@/components/ImagePreview'
 
-export const revalidate = 3600
+// export const revalidate = 3600
 
 async function getTravels(): Promise<Travel[]> {
   const { data } = await supabase

@@ -1,11 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
-export async function GET() {
-  const { data, error } = await supabaseAdmin
-    .from('games')
-    .select('*')
-    .order('updated_at', { ascending: false })
+const formatDateField = (value: string | null | undefined): string | null => {
+  if (!value) return null
+  if (value.includes('-') && value.split('-').length === 2) {
+    return `${value}-01`
+  }
+  return value
+}
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const sort = searchParams.get('sort')
+
+  let query = supabaseAdmin.from('games').select('*')
+
+  if (sort === 'completed') {
+    query = query.order('completed_at', { ascending: false }).order('updated_at', { ascending: false })
+  } else {
+    query = query.order('updated_at', { ascending: false })
+  }
+
+  const { data, error } = await query
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -15,7 +31,14 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json()
+  let body = await request.json()
+  
+  body = {
+    ...body,
+    started_at: formatDateField(body.started_at),
+    completed_at: formatDateField(body.completed_at),
+  }
+
   const { data, error } = await supabaseAdmin
     .from('games')
     .insert(body)
@@ -30,10 +53,18 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const { id, ...body } = await request.json()
+  let { id, ...body } = await request.json()
+  
+  body = {
+    ...body,
+    started_at: formatDateField(body.started_at),
+    completed_at: formatDateField(body.completed_at),
+    updated_at: new Date().toISOString(),
+  }
+
   const { data, error } = await supabaseAdmin
     .from('games')
-    .update({ ...body, updated_at: new Date().toISOString() })
+    .update(body)
     .eq('id', id)
     .select()
     .single()

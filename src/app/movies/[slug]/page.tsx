@@ -91,26 +91,15 @@ export default function MovieDetailPage() {
                 {movie.year}
               </span>
             )}
-            {movie.director && (
-              <span className="flex items-center gap-1.5">
-                <User className="h-4 w-4" />
-                {movie.director}
-              </span>
+            {movie.overview && (
+              <div className="mt-4 rounded-lg bg-gray-50 p-4">
+                <h3 className="mb-2 text-sm font-medium text-gray-700">简介</h3>
+                <p className="text-sm leading-relaxed text-gray-600">
+                  {movie.overview}
+                </p>
+              </div>
             )}
           </div>
-
-          {movie.genre && movie.genre.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {movie.genre.map((g) => (
-                <span
-                  key={g}
-                  className="rounded-lg bg-gray-100 px-3 py-1 text-sm text-gray-500"
-                >
-                  {g}
-                </span>
-              ))}
-            </div>
-          )}
 
           {movie.rating && (
             <div className="flex items-center gap-1">

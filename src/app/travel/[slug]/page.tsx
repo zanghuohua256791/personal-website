@@ -8,7 +8,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import ImagePreview from '@/components/ImagePreview'
 
-export const revalidate = 3600
+// export const revalidate = 3600
 
 async function getTravel(slug: string): Promise<Travel | null> {
   const { data } = await supabase

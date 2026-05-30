@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, memo } from 'react'
 import Image from 'next/image'
 import { X } from 'lucide-react'
 
@@ -18,10 +18,12 @@ interface ImagePreviewProps {
 
 const EXTERNAL_CDN_PATTERNS = [
   'steamstatic.com',
+  'image.tmdb.org',
 ]
 
-export default function ImagePreview({ src, alt, aspectRatio, className, priority = false, sizes, enablePreview = true, hoverScale = false, unoptimized }: ImagePreviewProps) {
+const ImagePreview = memo(function ImagePreview({ src, alt, aspectRatio, className, priority = false, sizes, enablePreview = true, hoverScale = false, unoptimized }: ImagePreviewProps) {
   const [open, setOpen] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
 
   const shouldUnoptimized = useMemo(() => {
     if (unoptimized !== undefined) return unoptimized
@@ -35,6 +37,10 @@ export default function ImagePreview({ src, alt, aspectRatio, className, priorit
     setOpen(true)
   }, [enablePreview])
 
+  const handleImageLoad = useCallback(() => {
+    setImageLoaded(true)
+  }, [])
+
   return (
     <>
       <div
@@ -46,11 +52,16 @@ export default function ImagePreview({ src, alt, aspectRatio, className, priorit
           src={src}
           alt={alt}
           fill
-          className={`object-cover${hoverScale ? ' transition-transform duration-500 group-hover:scale-105' : ''}`}
+          className={`object-cover${hoverScale ? ' transition-transform duration-500 group-hover:scale-105' : ''}${imageLoaded ? ' opacity-100' : ' opacity-0'}`}
           sizes={sizes || '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'}
           priority={priority}
           unoptimized={shouldUnoptimized}
+          onLoad={handleImageLoad}
+          loading={priority ? 'eager' : 'lazy'}
         />
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-gray-100 animate-pulse" />
+        )}
       </div>
 
       {open && (
@@ -74,4 +85,6 @@ export default function ImagePreview({ src, alt, aspectRatio, className, priorit
       )}
     </>
   )
-}
+})
+
+export default ImagePreview

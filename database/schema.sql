@@ -30,8 +30,7 @@ CREATE TABLE movies (
   slug        TEXT UNIQUE NOT NULL,
   poster_url  TEXT,
   year        INTEGER,
-  director    TEXT,
-  genre       TEXT[] DEFAULT '{}',
+  overview    TEXT,
   rating      INTEGER CHECK (rating >= 1 AND rating <= 5),
   review      TEXT,
   watched_at  DATE,
@@ -51,6 +50,8 @@ CREATE TABLE games (
   categories  TEXT[] DEFAULT '{}',
   review      TEXT,
   play_time   INTEGER DEFAULT 0,
+  started_at  DATE,
+  completed_at DATE,
   created_at  TIMESTAMPTZ DEFAULT now(),
   updated_at  TIMESTAMPTZ DEFAULT now()
 );
@@ -76,6 +77,7 @@ CREATE INDEX idx_travels_date ON travels(travel_date DESC);
 CREATE INDEX idx_movies_slug ON movies(slug);
 CREATE INDEX idx_movies_year ON movies(year DESC);
 CREATE INDEX idx_games_status ON games(status);
+CREATE INDEX idx_games_completed ON games(completed_at DESC);
 CREATE INDEX idx_game_sessions_game ON game_sessions(game_id);
 CREATE INDEX idx_game_sessions_started ON game_sessions(started_at DESC);
 

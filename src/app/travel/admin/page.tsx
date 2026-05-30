@@ -6,6 +6,12 @@ import ImageUpload from '@/components/ImageUpload'
 import TravelPhotoUpload from '@/components/TravelPhotoUpload'
 import type { Travel } from '@/lib/types'
 import { Plus, Edit, Trash2, X, Image as ImageIcon } from 'lucide-react'
+import { DatePicker, ConfigProvider } from 'antd'
+import dayjs from 'dayjs'
+import 'dayjs/locale/zh-cn'
+import locale from 'antd/locale/zh_CN'
+
+dayjs.locale('zh-cn')
 
 const emptyForm = {
   title: '',
@@ -196,13 +202,14 @@ export default function TravelAdminPage() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-gray-600">旅行日期</label>
-                <input
-                  type="date"
-                  value={form.travel_date}
-                  onChange={(e) => setForm({ ...form, travel_date: e.target.value })}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#1A1A1A]"
-                  required
-                />
+                <ConfigProvider locale={locale}>
+                  <DatePicker
+                    value={form.travel_date ? dayjs(form.travel_date) : null}
+                    onChange={(date) => setForm({ ...form, travel_date: date ? date.format('YYYY-MM-DD') : '' })}
+                    className="w-full"
+                    required
+                  />
+                </ConfigProvider>
               </div>
             </div>
             <div className="space-y-1.5">

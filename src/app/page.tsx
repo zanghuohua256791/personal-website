@@ -1,49 +1,104 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-import { supabase } from '@/lib/supabase'
-import type { Game, GameSession } from '@/lib/types'
+import type { Game } from '@/lib/types'
 import { GAME_STATUS_MAP, GAME_STATUS_COLORS } from '@/lib/types'
-import { Clock, MapPin, ChevronRight } from 'lucide-react'
+import { ChevronRight, Calendar } from 'lucide-react'
 import ImagePreview from '@/components/ImagePreview'
 
-export const revalidate = 3600
-
-async function getPlayingGames(): Promise<Game[]> {
-  const { data } = await supabase
-    .from('games')
-    .select('*')
-    .eq('status', 'playing')
-    .order('updated_at', { ascending: false })
-    .limit(3)
-  return (data as Game[]) || []
-}
-
-async function getRecentSessions(): Promise<GameSession[]> {
-  const { data } = await supabase
-    .from('game_sessions')
-    .select('*, game:games(*)')
-    .order('started_at', { ascending: false })
-    .limit(10)
-  return (data as GameSession[]) || []
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('zh-CN', {
+function formatYearMonth(dateStr: string) {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('zh-CN', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric',
   })
 }
 
-export default async function HomePage() {
-  const [playingGames, sessions] = await Promise.all([
-    getPlayingGames(),
-    getRecentSessions(),
-  ])
+export default function HomePage() {
+  const [playingGames, setPlayingGames] = useState<Game[]>([])
+  const [allGames, setAllGames] = useState<Game[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setLoading(true)
+    fetch('/api/games')
+      .then((res) => res.json())
+      .then((data) => {
+        const playing = data.filter((g: Game) => g.status === 'playing').slice(0, 3)
+        setPlayingGames(playing)
+        setAllGames(data)
+      })
+      .catch((err) => {
+        console.error('Failed to fetch data:', err)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [])
+
+  const thisYearGames = allGames.filter((g) => {
+    const year = new Date().getFullYear()
+    if (g.started_at) {
+      const startYear = new Date(g.started_at).getFullYear()
+      if (startYear === year) return true
+    }
+    if (g.completed_at) {
+      const completeYear = new Date(g.completed_at).getFullYear()
+      if (completeYear === year) return true
+    }
+    return false
+  })
+
+  const gamesByMonth = new Map<string, Game[]>()
+  const sortedMonths: string[] = []
+  const monthSet = new Set<string>()
+
+  for (const game of thisYearGames) {
+    const dates: { date: string; label: string }[] = []
+    if (game.started_at) dates.push({ date: game.started_at, label: '开始玩' })
+    if (game.completed_at) dates.push({ date: game.completed_at, label: '通关' })
+    
+    for (const { date } of dates) {
+      const monthKey = new Date(date).toISOString().slice(0, 7)
+      if (!monthSet.has(monthKey)) {
+        monthSet.add(monthKey)
+        sortedMonths.push(monthKey)
+      }
+      
+      if (!gamesByMonth.has(monthKey)) {
+        gamesByMonth.set(monthKey, [])
+      }
+      
+      const existing = gamesByMonth.get(monthKey)
+      if (!existing?.some((g) => g.id === game.id)) {
+        existing?.push(game)
+      }
+    }
+  }
+
+  sortedMonths.sort((a, b) => b.localeCompare(a))
+
+  const getGameDisplayDate = (game: Game, month: string) => {
+    if (game.completed_at && game.completed_at.startsWith(month)) {
+      return { date: game.completed_at, label: '通关' }
+    }
+    if (game.started_at && game.started_at.startsWith(month)) {
+      return { date: game.started_at, label: '开始玩' }
+    }
+    return null
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-[#1A1A1A]" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-24">
-      {/* 个人简介 */}
       <section className="space-y-6">
         <div className="flex items-start gap-6">
           <div className="h-20 w-20 flex-shrink-0 rounded-full bg-gradient-to-br from-accent-300 to-accent-500 flex items-center justify-center text-white text-2xl font-bold shadow-sm">
@@ -69,7 +124,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 正在游玩 */}
       <section className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold tracking-tight text-[#1A1A1A]">
@@ -89,11 +143,10 @@ export default async function HomePage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {playingGames.map((game) => (
               <Link
-                key={game.id}
-                href={game.steam_url || '#'}
-                target={game.steam_url ? '_blank' : undefined}
-                className="group overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
-              >
+              key={game.id}
+              href={`/games/${game.id}`}
+              className="group overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
+            >
                 <div className="aspect-[16/9] bg-gray-100 overflow-hidden relative">
                   {game.cover_url ? (
                     <ImagePreview
@@ -120,7 +173,7 @@ export default async function HomePage() {
                       {GAME_STATUS_MAP[game.status]}
                     </span>
                   </div>
-                  {game.platform.length > 0 && (
+                  {game.platform && game.platform.length > 0 && (
                     <p className="mt-2 text-xs text-gray-400">
                       {game.platform.join(' · ')}
                     </p>
@@ -132,43 +185,74 @@ export default async function HomePage() {
         )}
       </section>
 
-      {/* 最近游玩时间轴 */}
-      <section className="space-y-6">
-        <h2 className="text-2xl font-bold tracking-tight text-[#1A1A1A]">
-          最近游玩
-        </h2>
+      {thisYearGames.length > 0 && (
+        <section className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold tracking-tight text-[#1A1A1A]">
+              {new Date().getFullYear()} 游戏记录
+            </h2>
+          </div>
 
-        {sessions.length === 0 ? (
-          <p className="py-12 text-center text-gray-400">暂无游玩记录</p>
-        ) : (
-          <div className="relative border-l-2 border-gray-100">
-            {sessions.map((session) => (
-              <div key={session.id} className="relative pb-8 pl-8 last:pb-0">
-                <div className="absolute -left-[5px] top-1 h-2 w-2 rounded-full bg-accent-400" />
-                <div className="space-y-1">
-                  <h3 className="font-semibold text-[#1A1A1A]">
-                    {session.game?.title || '未知游戏'}
+          <div className="space-y-8">
+            {sortedMonths.map((month) => {
+              const monthGames = gamesByMonth.get(month)
+              if (!monthGames) return null
+              
+              return (
+                <div key={month} className="space-y-4">
+                  <h3 className="text-lg font-semibold text-[#1A1A1A]">
+                    {formatYearMonth(month + '-01')}
                   </h3>
-                  <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" />
-                      {formatDate(session.started_at)}
-                    </span>
-                    {session.game?.platform && session.game.platform.length > 0 && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-3.5 w-3.5" />
-                        {session.game.platform.join(' · ')}
-                      </span>
-                    )}
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {monthGames.map((game) => {
+                      const displayDate = getGameDisplayDate(game, month)
+                      return (
+                        <Link
+                          key={game.id}
+                          href={`/games/${game.id}`}
+                          className="group flex items-start gap-4 rounded-xl bg-white p-4 shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
+                        >
+                          <div className="h-12 w-20 flex-shrink-0 rounded-lg bg-gray-100 overflow-hidden">
+                            {game.cover_url ? (
+                              <ImagePreview
+                                src={game.cover_url}
+                                alt={game.title}
+                                className="h-full w-full"
+                                aspectRatio="16/9"
+                                sizes="80px"
+                                enablePreview={false}
+                              />
+                            ) : (
+                              <div className="flex h-full items-center justify-center text-gray-300 text-xs">
+                                No Cover
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <h4 className="font-medium text-[#1A1A1A] group-hover:text-accent-600 transition-colors truncate">
+                              {game.title}
+                            </h4>
+                            <div className="flex items-center gap-3 text-xs text-gray-400">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {displayDate?.label || '记录'}
+                              </span>
+                              <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${GAME_STATUS_COLORS[game.status]}`}>
+                                {GAME_STATUS_MAP[game.status]}
+                              </span>
+                            </div>
+                          </div>
+                        </Link>
+                      )
+                    })}
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
-      {/* 入口导航卡片 */}
       <section className="grid gap-6 sm:grid-cols-3">
         <Link
           href="/travel"
