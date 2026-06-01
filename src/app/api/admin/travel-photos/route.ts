@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { getKeyFromUrl } from '@/lib/r2'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -56,6 +57,31 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const { id } = await request.json()
+
+  const { data: photo } = await supabaseAdmin
+    .from('travel_photos')
+    .select('url')
+    .eq('id', id)
+    .single()
+
+  if (photo) {
+    const key = getKeyFromUrl(photo.url)
+    if (key) {
+      try {
+        const { DeleteObjectCommand } = await import('@aws-sdk/client-s3')
+        const { r2Client } = await import('@/lib/r2')
+        await r2Client.send(
+          new DeleteObjectCommand({
+            Bucket: process.env.R2_BUCKET || 'photo-album',
+            Key: key,
+          })
+        )
+      } catch (err) {
+        console.error('Delete R2 file error:', err)
+      }
+    }
+  }
+
   const { error } = await supabaseAdmin
     .from('travel_photos')
     .delete()

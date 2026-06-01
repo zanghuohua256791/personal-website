@@ -36,6 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const tabs = [
     { href: '/travel/admin', label: '旅行管理' },
+    { href: '/albums/admin', label: '相册管理' },
     { href: '/movies/admin', label: '电影管理' },
     { href: '/games/admin', label: '游戏管理' },
   ]

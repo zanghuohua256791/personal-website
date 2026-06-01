@@ -48,9 +48,9 @@ export default function TravelPhotoUpload({ travelId, initialPhotos, onUpdate }:
         const file = files[i]
         const formData = new FormData()
         formData.append('file', file)
-        formData.append('bucket', 'travel-photos')
+        formData.append('prefix', 'travel')
 
-        const res = await fetch('/api/admin/upload', {
+        const res = await fetch('/api/admin/upload-r2', {
           method: 'POST',
           body: formData,
         })

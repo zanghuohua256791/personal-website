@@ -19,7 +19,6 @@ const emptyForm = {
   location: '',
   travel_date: '',
   tags: '',
-  content: '',
   cover_url: '',
 }
 
@@ -67,7 +66,6 @@ export default function TravelAdminPage() {
       location: form.location,
       travel_date: form.travel_date,
       tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
-      content: form.content,
       cover_url: form.cover_url || null,
     }
 
@@ -115,7 +113,6 @@ export default function TravelAdminPage() {
       location: travel.location,
       travel_date: travel.travel_date,
       tags: travel.tags.join(', '),
-      content: travel.content || '',
       cover_url: travel.cover_url || '',
     })
     setPhotos([])
@@ -239,15 +236,6 @@ export default function TravelAdminPage() {
                 />
               </div>
             )}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-600">正文（Markdown）</label>
-              <textarea
-                value={form.content}
-                onChange={(e) => setForm({ ...form, content: e.target.value })}
-                rows={12}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#1A1A1A] font-mono"
-              />
-            </div>
             <button
               type="submit"
               className="rounded-lg bg-[#1A1A1A] px-6 py-2 text-sm font-medium text-white transition-opacity hover:opacity-80"

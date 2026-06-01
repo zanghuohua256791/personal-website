@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 const navItems = [
   { href: '/', label: '首页' },
   { href: '/travel', label: '旅行' },
+  { href: '/albums', label: '相册' },
   { href: '/movies', label: '电影' },
   { href: '/games', label: '游戏' },
 ]
