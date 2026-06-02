@@ -1,15 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { useState, useEffect, useCallback } from 'react'
 import type { Album, Photo } from '@/lib/types'
-import { Calendar, Image as ImageIcon, X, Lock } from 'lucide-react'
+import { Calendar, Image as ImageIcon, X, Lock, ChevronLeft, ChevronRight, Grid3X3 } from 'lucide-react'
 import { DatePicker, ConfigProvider } from 'antd'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import locale from 'antd/locale/zh_CN'
-import { R2_PUBLIC_URL } from '@/lib/r2'
-
 dayjs.locale('zh-cn')
 
 function AlbumAuthGate({ onAuth }: { onAuth: () => void }) {
@@ -76,8 +73,7 @@ function AlbumAuthGate({ onAuth }: { onAuth: () => void }) {
   )
 }
 
-export default function AlbumsPage() {
-  const [authenticated, setAuthenticated] = useState(false)
+function AlbumsContent() {
   const [albums, setAlbums] = useState<Album[]>([])
   const [photos, setPhotos] = useState<Record<string, Photo[]>>({})
   const [loading, setLoading] = useState(true)
@@ -86,14 +82,6 @@ export default function AlbumsPage() {
   const [previewIndex, setPreviewIndex] = useState(0)
 
   useEffect(() => {
-    if (sessionStorage.getItem('albums_auth') === 'true') {
-      setAuthenticated(true)
-    }
-    setLoading(false)
-  }, [])
-
-  useEffect(() => {
-    if (!authenticated) return
     Promise.all([
       fetch('/api/albums').then((r) => r.json()),
       fetch('/api/photos').then((r) => r.json()),
@@ -109,11 +97,7 @@ export default function AlbumsPage() {
       }
       setLoading(false)
     })
-  }, [authenticated])
-
-  if (!authenticated) {
-    return <AlbumAuthGate onAuth={() => setAuthenticated(true)} />
-  }
+  }, [])
 
   const allYears = Array.from(
     new Set(
@@ -139,6 +123,31 @@ export default function AlbumsPage() {
   }
 
   const previewPhotos = previewAlbum ? photos[previewAlbum.id] || [] : []
+
+  const lightboxOpen = previewAlbum !== null && previewPhotos[previewIndex] !== undefined
+
+  const lightboxPrev = useCallback(() => {
+    setPreviewIndex((i) => (i > 0 ? i - 1 : previewPhotos.length - 1))
+  }, [previewPhotos.length])
+
+  const lightboxNext = useCallback(() => {
+    setPreviewIndex((i) => (i < previewPhotos.length - 1 ? i + 1 : 0))
+  }, [previewPhotos.length])
+
+  const lightboxClose = useCallback(() => {
+    setPreviewIndex(-1)
+  }, [])
+
+  useEffect(() => {
+    if (!lightboxOpen) return
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') lightboxClose()
+      if (e.key === 'ArrowLeft') lightboxPrev()
+      if (e.key === 'ArrowRight') lightboxNext()
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [lightboxOpen, lightboxClose, lightboxPrev, lightboxNext])
 
   return (
     <div className="space-y-6">
@@ -232,34 +241,49 @@ export default function AlbumsPage() {
 
       {previewAlbum && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/90 pt-[env(safe-area-inset-top)]"
           onClick={() => setPreviewAlbum(null)}
         >
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              setPreviewAlbum(null)
-            }}
-            className="absolute right-4 top-4 z-10 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
+          <div
+            className="flex min-h-screen w-full max-w-5xl flex-col px-4 py-6"
+            onClick={(e) => e.stopPropagation()}
           >
-            <X className="h-6 w-6" />
-          </button>
-
-          <div className="w-full max-w-5xl px-4">
-            <div className="mb-4 text-center text-white">
-              <h2 className="text-2xl font-bold">{previewAlbum.title}</h2>
-              {previewAlbum.description && (
-                <p className="mt-1 text-sm text-gray-300">
-                  {previewAlbum.description}
-                </p>
-              )}
+            <div className="mb-6 flex items-start justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-white">
+                  {previewAlbum.title}
+                </h2>
+                {previewAlbum.description && (
+                  <p className="mt-1 text-sm text-gray-400">
+                    {previewAlbum.description}
+                  </p>
+                )}
+                <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                  {previewAlbum.created_at && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {dayjs(previewAlbum.created_at).format('YYYY-MM-DD')}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <Grid3X3 className="h-3.5 w-3.5" />
+                    {previewPhotos.length} 张照片
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setPreviewAlbum(null)}
+                className="shrink-0 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+            <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 md:gap-2 lg:grid-cols-5">
               {previewPhotos.map((photo, idx) => (
-                <div
+                <button
                   key={photo.id}
-                  className="aspect-square cursor-pointer overflow-hidden rounded-lg"
+                  className="group relative aspect-square overflow-hidden rounded-md bg-white/5"
                   onClick={(e) => {
                     e.stopPropagation()
                     setPreviewIndex(idx)
@@ -268,15 +292,125 @@ export default function AlbumsPage() {
                   <img
                     src={photo.thumbnail_url || photo.url}
                     alt={photo.caption || ''}
-                    className="h-full w-full object-cover transition-transform hover:scale-110"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                     loading="lazy"
                   />
-                </div>
+                  <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
+                </button>
               ))}
             </div>
           </div>
+
+          {lightboxOpen && (
+            <div
+              className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black"
+              onClick={lightboxClose}
+            >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  lightboxClose()
+                }}
+                className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              <div
+                className="relative flex w-full flex-1 items-center justify-center px-12 pb-2 pt-2 sm:px-16"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {previewPhotos.length > 1 && (
+                  <button
+                    onClick={lightboxPrev}
+                    className="absolute left-2 z-10 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20 sm:left-4"
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </button>
+                )}
+
+                <img
+                  src={previewPhotos[previewIndex].url}
+                  alt={previewPhotos[previewIndex].caption || ''}
+                  className="max-h-[70vh] max-w-full select-none object-contain sm:max-h-[75vh]"
+                  draggable={false}
+                />
+
+                {previewPhotos.length > 1 && (
+                  <button
+                    onClick={lightboxNext}
+                    className="absolute right-2 z-10 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20 sm:right-4"
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </button>
+                )}
+              </div>
+
+              <div className="w-full shrink-0 px-4 pb-4 pt-2 text-center">
+                {previewPhotos[previewIndex].caption && (
+                  <p className="mb-2 text-sm text-gray-300">
+                    {previewPhotos[previewIndex].caption}
+                  </p>
+                )}
+                <p className="mb-3 text-xs text-gray-500">
+                  {previewIndex + 1} / {previewPhotos.length}
+                </p>
+
+                {previewPhotos.length > 1 && (
+                  <div className="mx-auto flex max-w-xl items-center gap-1 overflow-x-auto no-scrollbar">
+                    {previewPhotos.map((photo, idx) => (
+                      <button
+                        key={photo.id}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setPreviewIndex(idx)
+                        }}
+                        className={`shrink-0 overflow-hidden rounded transition-all ${
+                          idx === previewIndex
+                            ? 'h-12 w-12 ring-2 ring-white sm:h-14 sm:w-14'
+                            : 'h-10 w-10 opacity-50 hover:opacity-80 sm:h-12 sm:w-12'
+                        }`}
+                      >
+                        <img
+                          src={photo.thumbnail_url || photo.url}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
   )
+}
+
+export default function AlbumsPage() {
+  const [authenticated, setAuthenticated] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (sessionStorage.getItem('albums_auth') === 'true') {
+      setAuthenticated(true)
+    }
+    setLoading(false)
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-24">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-[#1A1A1A]" />
+      </div>
+    )
+  }
+
+  if (!authenticated) {
+    return <AlbumAuthGate onAuth={() => setAuthenticated(true)} />
+  }
+
+  return <AlbumsContent />
 }
