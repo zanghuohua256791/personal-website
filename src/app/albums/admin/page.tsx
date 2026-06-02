@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import AdminLayout from '@/components/AdminLayout'
 import type { Album, Photo } from '@/lib/types'
-import { Plus, Edit, Trash2, X, Calendar, Image as ImageIcon, Upload, X as XIcon, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import { Plus, Edit, Trash2, X, Calendar, Image as ImageIcon, Upload, X as XIcon, ChevronLeft, ChevronRight, RefreshCw, AlertCircle } from 'lucide-react'
 import { DatePicker, ConfigProvider } from 'antd'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
@@ -27,6 +27,8 @@ export default function AlbumAdminPage() {
   const [showForm, setShowForm] = useState(false)
   const [managing, setManaging] = useState<Album | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<{ total: number; done: number; errors: string[] } | null>(null)
+  const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   const [yearFilter, setYearFilter] = useState<string>('all')
@@ -141,11 +143,19 @@ export default function AlbumAdminPage() {
     }
   }
 
-  const handleUploadPhoto = useCallback(async (files: FileList) => {
+  const handleUploadPhoto = useCallback(async (files: FileList | File[]) => {
     if (!managing) return
+    const fileArray = Array.from(files)
+    if (fileArray.length === 0) return
+
     setUploading(true)
-    try {
-      for (const file of Array.from(files)) {
+    setUploadProgress({ total: fileArray.length, done: 0, errors: [] })
+
+    let done = 0
+    const errors: string[] = []
+
+    for (const file of fileArray) {
+      try {
         const formData = new FormData()
         formData.append('file', file)
         const uploadRes = await fetch('/api/admin/upload-r2', {
@@ -154,7 +164,7 @@ export default function AlbumAdminPage() {
           body: formData,
         })
         if (!uploadRes.ok) {
-          alert('上传失败')
+          errors.push(file.name)
           continue
         }
         const uploadData = await uploadRes.json()
@@ -167,12 +177,35 @@ export default function AlbumAdminPage() {
             file_size: uploadData.file_size,
           }),
         })
+      } catch {
+        errors.push(file.name)
       }
-      fetchData()
-    } finally {
-      setUploading(false)
+      done++
+      setUploadProgress({ total: fileArray.length, done, errors: [...errors] })
     }
+
+    setUploadProgress(null)
+    setUploading(false)
+    fetchData()
   }, [managing])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+    if (e.dataTransfer.files.length > 0) {
+      handleUploadPhoto(e.dataTransfer.files)
+    }
+  }, [handleUploadPhoto])
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+  }, [])
 
   const handleDeletePhoto = async (photoId: string) => {
     if (!confirm('确定删除这张照片吗？')) return
@@ -269,7 +302,16 @@ export default function AlbumAdminPage() {
             </button>
           </div>
           
-          <div className="mb-4">
+          <div
+            className={`mb-4 rounded-xl border-2 border-dashed p-6 text-center transition-colors ${
+              dragOver
+                ? 'border-[#1A1A1A] bg-gray-50'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+          >
             <input
               ref={fileInputRef}
               type="file"
@@ -278,15 +320,46 @@ export default function AlbumAdminPage() {
               onChange={(e) => e.target.files && handleUploadPhoto(e.target.files)}
               className="hidden"
             />
+            <Upload className="mx-auto h-8 w-8 text-gray-400" />
+            <p className="mt-2 text-sm text-gray-500">
+              {dragOver ? '松开鼠标上传' : '拖拽图片到此处，或'}
+            </p>
             <button
+              type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="flex items-center gap-2 rounded-lg bg-[#1A1A1A] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-80 disabled:opacity-50"
+              className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-[#1A1A1A] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-80 disabled:opacity-50"
             >
-              <Upload className="h-4 w-4" />
-              {uploading ? '上传中...' : '上传照片（可多选）'}
+              {uploading ? '上传中...' : '选择图片'}
             </button>
           </div>
+
+          {uploadProgress && (
+            <div className="mb-4 rounded-lg bg-gray-50 p-4">
+              <div className="mb-2 flex items-center justify-between text-sm">
+                <span className="text-gray-600">
+                  上传中 {uploadProgress.done}/{uploadProgress.total}
+                </span>
+                {uploadProgress.errors.length > 0 && (
+                  <span className="flex items-center gap-1 text-red-500">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    {uploadProgress.errors.length} 个失败
+                  </span>
+                )}
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-gray-200">
+                <div
+                  className="h-full rounded-full bg-[#1A1A1A] transition-all duration-300"
+                  style={{ width: `${(uploadProgress.done / uploadProgress.total) * 100}%` }}
+                />
+              </div>
+              {uploadProgress.errors.length > 0 && (
+                <p className="mt-2 text-xs text-red-400">
+                  失败文件：{uploadProgress.errors.join('、')}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
             {(photos[managing.id] || []).map((photo) => (
