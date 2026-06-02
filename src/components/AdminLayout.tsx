@@ -42,38 +42,40 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ]
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <Link
             href="/"
-            className="flex items-center gap-1 text-sm text-gray-400 transition-colors hover:text-[#1A1A1A]"
+            className="flex items-center gap-1 text-sm text-gray-400 transition-colors hover:text-[#1A1A1A] shrink-0"
           >
             <ChevronLeft className="h-4 w-4" />
             返回首页
           </Link>
-          <div className="flex gap-1 rounded-xl bg-gray-100 p-1">
-            {tabs.map((tab) => (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-colors ${
-                  pathname === tab.href
-                    ? 'bg-white text-[#1A1A1A] shadow-sm'
-                    : 'text-gray-500 hover:text-[#1A1A1A]'
-                }`}
-              >
-                {tab.label}
-              </Link>
-            ))}
-          </div>
         </div>
         <button
           onClick={handleLogout}
-          className="rounded-lg px-4 py-2 text-sm text-gray-400 transition-colors hover:text-red-500"
+          className="self-end sm:self-auto rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-400 transition-colors hover:text-red-500"
         >
           退出
         </button>
+      </div>
+      <div className="overflow-x-auto no-scrollbar -mx-6 px-6 sm:mx-0 sm:px-0">
+        <div className="flex gap-1 rounded-xl bg-gray-100 p-1 w-max min-w-full sm:w-auto">
+          {tabs.map((tab) => (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={`rounded-lg px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors ${
+                pathname === tab.href
+                  ? 'bg-white text-[#1A1A1A] shadow-sm'
+                  : 'text-gray-500 hover:text-[#1A1A1A]'
+              }`}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </div>
       </div>
       {children}
     </div>

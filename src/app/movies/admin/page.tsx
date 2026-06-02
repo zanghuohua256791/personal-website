@@ -195,13 +195,13 @@ export default function MovieAdminPage() {
   return (
     <AdminLayout>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#1A1A1A]">电影管理</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-[#1A1A1A]">电影管理</h1>
         <button
           onClick={() => { setEditing(null); setForm(emptyForm); setShowForm(true) }}
-          className="flex items-center gap-1.5 rounded-lg bg-[#1A1A1A] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-80"
+          className="flex items-center gap-1.5 rounded-lg bg-[#1A1A1A] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white transition-opacity hover:opacity-80"
         >
-          <Plus className="h-4 w-4" />
-          新增电影
+          <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          新增
         </button>
       </div>
 
@@ -393,26 +393,26 @@ export default function MovieAdminPage() {
         </div>
       ) : (
         <>
-        <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5">
+        <div className="overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-black/5">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 text-left">
-                <th className="px-6 py-3 font-medium text-gray-500">片名</th>
-                <th className="px-6 py-3 font-medium text-gray-500">上映年份</th>
-                <th className="px-6 py-3 font-medium text-gray-500">观看日期</th>
-                <th className="px-6 py-3 font-medium text-gray-500">简介</th>
-                <th className="px-6 py-3 font-medium text-gray-500">评分</th>
-                <th className="px-6 py-3 text-right font-medium text-gray-500">操作</th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">片名</th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">上映年份</th>
+                <th className="hidden sm:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">观看日期</th>
+                <th className="hidden md:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">简介</th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">评分</th>
+                <th className="px-3 sm:px-6 py-3 text-right font-medium text-gray-500 whitespace-nowrap">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {paginatedMovies.map((movie) => (
                 <tr key={movie.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-3 font-medium text-[#1A1A1A]">{movie.title}</td>
-                  <td className="px-6 py-3 text-gray-500">{movie.year || '-'}</td>
-                  <td className="px-6 py-3 text-gray-500">{movie.watched_at || '-'}</td>
-                  <td className="px-6 py-3 text-gray-500 max-w-xs truncate" title={movie.overview || ''}>{movie.overview || '-'}</td>
-                  <td className="px-6 py-3">
+                  <td className="px-3 sm:px-6 py-3 font-medium text-[#1A1A1A] whitespace-nowrap">{movie.title}</td>
+                  <td className="px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap">{movie.year || '-'}</td>
+                  <td className="hidden sm:table-cell px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap">{movie.watched_at || '-'}</td>
+                  <td className="hidden md:table-cell px-3 sm:px-6 py-3 text-gray-500 max-w-xs truncate" title={movie.overview || ''}>{movie.overview || '-'}</td>
+                  <td className="px-3 sm:px-6 py-3 whitespace-nowrap">
                     {movie.rating ? (
                       <span className="flex items-center gap-0.5">
                         {Array.from({ length: movie.rating }, (_, i) => (
@@ -423,8 +423,8 @@ export default function MovieAdminPage() {
                       <span className="text-gray-300">-</span>
                     )}
                   </td>
-                  <td className="px-6 py-3">
-                    <div className="flex justify-end gap-2">
+                  <td className="px-3 sm:px-6 py-3">
+                    <div className="flex justify-end gap-1 sm:gap-2">
                       <button onClick={() => handleEdit(movie)} className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-[#1A1A1A]">
                         <Edit className="h-4 w-4" />
                       </button>
@@ -437,7 +437,7 @@ export default function MovieAdminPage() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={6} className="px-3 sm:px-6 py-12 text-center text-gray-400">
                     暂无电影记录
                   </td>
                 </tr>

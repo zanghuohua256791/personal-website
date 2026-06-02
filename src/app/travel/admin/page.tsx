@@ -145,13 +145,13 @@ export default function TravelAdminPage() {
   return (
     <AdminLayout>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#1A1A1A]">旅行管理</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-[#1A1A1A]">旅行管理</h1>
         <button
           onClick={handleNew}
-          className="flex items-center gap-1.5 rounded-lg bg-[#1A1A1A] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-80"
+          className="flex items-center gap-1.5 rounded-lg bg-[#1A1A1A] px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white transition-opacity hover:opacity-80"
         >
-          <Plus className="h-4 w-4" />
-          新增旅行
+          <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          新增
         </button>
       </div>
 
@@ -251,29 +251,29 @@ export default function TravelAdminPage() {
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-[#1A1A1A]" />
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5">
+        <div className="overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-black/5">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 text-left">
-                <th className="px-6 py-3 font-medium text-gray-500">标题</th>
-                <th className="px-6 py-3 font-medium text-gray-500">目的地</th>
-                <th className="px-6 py-3 font-medium text-gray-500">日期</th>
-                <th className="px-6 py-3 font-medium text-gray-500">标签</th>
-                <th className="px-6 py-3 text-right font-medium text-gray-500">操作</th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">标题</th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">目的地</th>
+                <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">日期</th>
+                <th className="hidden sm:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">标签</th>
+                <th className="px-3 sm:px-6 py-3 text-right font-medium text-gray-500 whitespace-nowrap">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {travels.map((travel) => (
                 <tr key={travel.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-3 font-medium text-[#1A1A1A]">{travel.title}</td>
-                  <td className="px-6 py-3 text-gray-500">{travel.location}</td>
-                  <td className="px-6 py-3 text-gray-500">{travel.travel_date}</td>
-                  <td className="px-6 py-3 text-gray-400">
+                  <td className="px-3 sm:px-6 py-3 font-medium text-[#1A1A1A] whitespace-nowrap">{travel.title}</td>
+                  <td className="px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap">{travel.location}</td>
+                  <td className="px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap">{travel.travel_date}</td>
+                  <td className="hidden sm:table-cell px-3 sm:px-6 py-3 text-gray-400 whitespace-nowrap">
                     {travel.tags.slice(0, 2).join(', ')}
                     {travel.tags.length > 2 && '...'}
                   </td>
-                  <td className="px-6 py-3">
-                    <div className="flex justify-end gap-2">
+                  <td className="px-3 sm:px-6 py-3">
+                    <div className="flex justify-end gap-1 sm:gap-2">
                       <button
                         onClick={() => openPhotoManager(travel)}
                         className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-[#1A1A1A]"
@@ -299,7 +299,7 @@ export default function TravelAdminPage() {
               ))}
               {travels.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={5} className="px-3 sm:px-6 py-12 text-center text-gray-400">
                     暂无旅行记录
                   </td>
                 </tr>

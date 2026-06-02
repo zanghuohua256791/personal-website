@@ -24,7 +24,7 @@ export default function Navbar() {
           <Link href="/" className="text-lg font-bold tracking-tight text-[#1A1A1A]">
             Home
           </Link>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0 sm:gap-1 overflow-x-auto no-scrollbar">
             {navItems.map((item) => {
               const isActive =
                 item.href === '/'
@@ -34,7 +34,7 @@ export default function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  className={`rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors ${
                     isActive
                       ? 'bg-black/5 text-[#1A1A1A]'
                       : 'text-gray-500 hover:text-[#1A1A1A] hover:bg-black/5'

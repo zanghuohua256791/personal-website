@@ -50,15 +50,6 @@ export interface Game {
   updated_at: string;
 }
 
-export interface GameSession {
-  id: string;
-  game_id: string;
-  game?: Game;
-  started_at: string;
-  ended_at: string | null;
-  created_at: string;
-}
-
 export const GAME_STATUS_MAP: Record<Game["status"], string> = {
   want_to_play: "想玩",
   playing: "在玩",
