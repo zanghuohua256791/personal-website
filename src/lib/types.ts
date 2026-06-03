@@ -50,15 +50,6 @@ export interface Game {
   updated_at: string;
 }
 
-export interface GameSession {
-  id: string;
-  game_id: string;
-  game?: Game;
-  started_at: string;
-  ended_at: string | null;
-  created_at: string;
-}
-
 export const GAME_STATUS_MAP: Record<Game["status"], string> = {
   want_to_play: "想玩",
   playing: "在玩",
@@ -72,3 +63,27 @@ export const GAME_STATUS_COLORS: Record<Game["status"], string> = {
   completed: "bg-blue-100 text-blue-700",
   dropped: "bg-red-100 text-red-600",
 };
+
+export interface Album {
+  id: string;
+  title: string;
+  description: string | null;
+  cover_url: string | null;
+  photo_count: number;
+  event_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Photo {
+  id: string;
+  album_id: string;
+  url: string;
+  thumbnail_url: string | null;
+  caption: string | null;
+  width: number | null;
+  height: number | null;
+  file_size: number | null;
+  taken_at: string | null;
+  created_at: string;
+}

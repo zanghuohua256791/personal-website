@@ -158,8 +158,7 @@ export default function GameAdminPage() {
         cover_url: coverUrl || prev.cover_url,
         categories,
       }));
-    } catch {
-    }
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -276,10 +275,12 @@ export default function GameAdminPage() {
 
   return (
     <AdminLayout>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#1A1A1A]">游戏管理</h1>
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <h1 className="text-xl lg:text-2xl font-bold text-[#1A1A1A]">
+          游戏管理
+        </h1>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 whitespace-nowrap">
             <span className="text-sm text-gray-500">年份筛选:</span>
             <ConfigProvider locale={locale}>
               <DatePicker
@@ -306,7 +307,7 @@ export default function GameAdminPage() {
             className="flex items-center gap-1.5 rounded-lg bg-[#1A1A1A] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-80"
           >
             <Plus className="h-4 w-4" />
-            新增游戏
+            新增
           </button>
         </div>
       </div>
@@ -577,25 +578,35 @@ export default function GameAdminPage() {
         </div>
       ) : (
         <>
-          <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5">
+          <div className="overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-black/5">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-left">
-                  <th className="px-6 py-3 font-medium text-gray-500">游戏</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">平台</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">分类</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">状态</th>
-                  <th className="px-6 py-3 font-medium text-gray-500">评分</th>
-                  <th className="px-6 py-3 font-medium text-gray-500 w-[110px]">
+                  <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">
+                    游戏
+                  </th>
+                  <th className="hidden sm:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">
+                    平台
+                  </th>
+                  <th className="hidden md:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap min-w-[200px]">
+                    分类
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">
+                    状态
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">
+                    评分
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">
                     游玩时间
                   </th>
-                  <th className="px-6 py-3 font-medium text-gray-500">
+                  <th className="hidden md:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">
                     开始日期
                   </th>
-                  <th className="px-6 py-3 font-medium text-gray-500">
+                  <th className="hidden md:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">
                     通关日期
                   </th>
-                  <th className="px-6 py-3 text-right font-medium text-gray-500">
+                  <th className="px-3 sm:px-6 py-3 text-right font-medium text-gray-500 whitespace-nowrap">
                     操作
                   </th>
                 </tr>
@@ -603,15 +614,16 @@ export default function GameAdminPage() {
               <tbody className="divide-y divide-gray-50">
                 {paginatedGames.map((game) => (
                   <tr key={game.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-3 w-[150px] font-medium text-[#1A1A1A]">
-                      <div className="line-clamp-3" title={game.title}>
-                        {game.title}
-                      </div>
+                    <td
+                      className="px-3 sm:px-6 py-3 font-medium text-[#1A1A1A] whitespace-nowrap max-w-[120px] sm:max-w-none truncate"
+                      title={game.title}
+                    >
+                      {game.title}
                     </td>
-                    <td className="px-6 py-3 text-gray-500">
+                    <td className="hidden sm:table-cell px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap">
                       {game.platform?.join(", ") || "-"}
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="hidden md:table-cell px-3 sm:px-6 py-3">
                       <div className="flex flex-wrap gap-1">
                         {(game.categories || []).slice(0, 3).map((cat) => (
                           <span
@@ -628,14 +640,14 @@ export default function GameAdminPage() {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-3 w-[100px]">
+                    <td className="px-3 sm:px-6 py-3 whitespace-nowrap">
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${GAME_STATUS_COLORS[game.status]}`}
                       >
                         {GAME_STATUS_MAP[game.status]}
                       </span>
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="px-3 sm:px-6 py-3 whitespace-nowrap">
                       {game.rating ? (
                         <span className="flex items-center gap-0.5">
                           {Array.from({ length: game.rating }, (_, i) => (
@@ -649,10 +661,10 @@ export default function GameAdminPage() {
                         <span className="text-gray-300">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-3 text-gray-500">
+                    <td className="px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap">
                       {formatPlayTime(game.play_time || 0)}
                     </td>
-                    <td className="px-6 py-3 text-gray-500">
+                    <td className="hidden md:table-cell px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap">
                       {game.started_at ? (
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
@@ -662,7 +674,7 @@ export default function GameAdminPage() {
                         "-"
                       )}
                     </td>
-                    <td className="px-6 py-3 text-gray-500">
+                    <td className="hidden md:table-cell px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap">
                       {game.completed_at ? (
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
@@ -672,8 +684,8 @@ export default function GameAdminPage() {
                         "-"
                       )}
                     </td>
-                    <td className="px-6 py-3">
-                      <div className="flex justify-end gap-2">
+                    <td className="px-3 sm:px-6 py-3">
+                      <div className="flex justify-end gap-1 sm:gap-2">
                         <button
                           type="button"
                           onClick={() => handleEdit(game)}
@@ -696,7 +708,7 @@ export default function GameAdminPage() {
                   <tr>
                     <td
                       colSpan={8}
-                      className="px-6 py-12 text-center text-gray-400"
+                      className="px-3 sm:px-6 py-12 text-center text-gray-400"
                     >
                       还没有游戏记录 🎮
                     </td>

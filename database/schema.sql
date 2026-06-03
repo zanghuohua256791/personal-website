@@ -56,21 +56,6 @@ CREATE TABLE games (
   updated_at  TIMESTAMPTZ DEFAULT now()
 );
 
--- 游戏游玩记录
-CREATE TABLE game_sessions (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  game_id     UUID REFERENCES games(id) ON DELETE CASCADE,
-  started_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-  ended_at    TIMESTAMPTZ,
-  created_at  TIMESTAMPTZ DEFAULT now()
-);
-
--- 管理密码
-CREATE TABLE admin_keys (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  password    TEXT NOT NULL
-);
-
 -- 索引
 CREATE INDEX idx_travels_slug ON travels(slug);
 CREATE INDEX idx_travels_date ON travels(travel_date DESC);
@@ -78,8 +63,6 @@ CREATE INDEX idx_movies_slug ON movies(slug);
 CREATE INDEX idx_movies_year ON movies(year DESC);
 CREATE INDEX idx_games_status ON games(status);
 CREATE INDEX idx_games_completed ON games(completed_at DESC);
-CREATE INDEX idx_game_sessions_game ON game_sessions(game_id);
-CREATE INDEX idx_game_sessions_started ON game_sessions(started_at DESC);
 
 -- 存储桶 (在 Supabase Storage 中手动创建)
 -- 1. travel-covers   (Public)
@@ -92,11 +75,9 @@ ALTER TABLE travels ENABLE ROW LEVEL SECURITY;
 ALTER TABLE travel_photos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE movies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE games ENABLE ROW LEVEL SECURITY;
-ALTER TABLE game_sessions ENABLE ROW LEVEL SECURITY;
 
 -- 公开读取策略
 CREATE POLICY "public_read_travels" ON travels FOR SELECT USING (true);
 CREATE POLICY "public_read_travel_photos" ON travel_photos FOR SELECT USING (true);
 CREATE POLICY "public_read_movies" ON movies FOR SELECT USING (true);
 CREATE POLICY "public_read_games" ON games FOR SELECT USING (true);
-CREATE POLICY "public_read_game_sessions" ON game_sessions FOR SELECT USING (true);

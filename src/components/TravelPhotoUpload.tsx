@@ -1,136 +1,143 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useCallback } from 'react'
-import { Upload, Trash2, GripVertical } from 'lucide-react'
+import { useState, useEffect, useCallback } from "react";
+import { Upload, Trash2, GripVertical } from "lucide-react";
 
 interface TravelPhoto {
-  id?: string
-  url: string
-  caption: string
-  sort_order: number
+  id?: string;
+  url: string;
+  caption: string;
+  sort_order: number;
 }
 
 interface TravelPhotoUploadProps {
-  travelId: string
-  initialPhotos: TravelPhoto[]
-  onUpdate: (photos: TravelPhoto[]) => void
+  travelId: string;
+  initialPhotos: TravelPhoto[];
+  onUpdate: (photos: TravelPhoto[]) => void;
 }
 
-export default function TravelPhotoUpload({ travelId, initialPhotos, onUpdate }: TravelPhotoUploadProps) {
-  const [photos, setPhotos] = useState<TravelPhoto[]>(initialPhotos)
-  const [uploading, setUploading] = useState(false)
+export default function TravelPhotoUpload({
+  travelId,
+  initialPhotos,
+  onUpdate,
+}: TravelPhotoUploadProps) {
+  const [photos, setPhotos] = useState<TravelPhoto[]>(initialPhotos);
+  const [uploading, setUploading] = useState(false);
 
   const fetchPhotos = useCallback(async () => {
-    const res = await fetch(`/api/admin/travel-photos?travel_id=${travelId}`)
-    const data = await res.json()
+    const res = await fetch(`/api/admin/travel-photos?travel_id=${travelId}`);
+    const data = await res.json();
     if (Array.isArray(data)) {
-      setPhotos(data)
-      onUpdate(data)
+      setPhotos(data);
+      onUpdate(data);
     }
-  }, [travelId, onUpdate])
+  }, [travelId, onUpdate]);
 
   useEffect(() => {
-    if (travelId && travelId !== 'new') {
-      fetchPhotos()
+    if (travelId && travelId !== "new") {
+      fetchPhotos();
     }
-  }, [travelId, fetchPhotos])
+  }, [travelId, fetchPhotos]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files || files.length === 0) return
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    setUploading(true)
+    setUploading(true);
 
     try {
-      const newPhotos: TravelPhoto[] = []
+      const newPhotos: TravelPhoto[] = [];
 
       for (let i = 0; i < files.length; i++) {
-        const file = files[i]
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('bucket', 'travel-photos')
+        const file = files[i];
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("bucket", "travel-photos");
 
-        const res = await fetch('/api/admin/upload', {
-          method: 'POST',
+        const res = await fetch("/api/admin/upload", {
+          method: "POST",
           body: formData,
-        })
-        const data = await res.json()
+        });
+        const data = await res.json();
 
         if (data.url) {
           const photo = {
             id: data.id || `temp_${Date.now()}_${i}`,
             url: data.url,
-            caption: '',
+            caption: "",
             sort_order: photos.length + i,
-          }
-          newPhotos.push(photo)
+          };
+          newPhotos.push(photo);
         }
       }
 
-      const updatedPhotos = [...photos, ...newPhotos]
-      setPhotos(updatedPhotos)
-      onUpdate(updatedPhotos)
+      const updatedPhotos = [...photos, ...newPhotos];
+      setPhotos(updatedPhotos);
+      onUpdate(updatedPhotos);
 
-      if (travelId && travelId !== 'new') {
+      if (travelId && travelId !== "new") {
         for (const photo of newPhotos) {
-          await fetch('/api/admin/travel-photos', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+          await fetch("/api/admin/travel-photos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               travel_id: travelId,
               url: photo.url,
               caption: photo.caption,
               sort_order: photo.sort_order,
             }),
-          })
+          });
         }
       }
     } catch (err) {
-      console.error('Upload failed', err)
+      console.error("Upload failed", err);
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   const handleCaptionChange = async (index: number, caption: string) => {
-    const updatedPhotos = [...photos]
-    updatedPhotos[index] = { ...updatedPhotos[index], caption }
-    setPhotos(updatedPhotos)
-    onUpdate(updatedPhotos)
+    const updatedPhotos = [...photos];
+    updatedPhotos[index] = { ...updatedPhotos[index], caption };
+    setPhotos(updatedPhotos);
+    onUpdate(updatedPhotos);
 
-    if (updatedPhotos[index].id && !updatedPhotos[index].id.startsWith('temp_')) {
-      await fetch('/api/admin/travel-photos', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+    if (
+      updatedPhotos[index].id &&
+      !updatedPhotos[index].id.startsWith("temp_")
+    ) {
+      await fetch("/api/admin/travel-photos", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: updatedPhotos[index].id,
           caption,
         }),
-      })
+      });
     }
-  }
+  };
 
   const handleDelete = async (index: number) => {
-    const photoToDelete = photos[index]
-    const updatedPhotos = photos.filter((_, i) => i !== index)
-    setPhotos(updatedPhotos)
-    onUpdate(updatedPhotos)
+    const photoToDelete = photos[index];
+    const updatedPhotos = photos.filter((_, i) => i !== index);
+    setPhotos(updatedPhotos);
+    onUpdate(updatedPhotos);
 
-    if (photoToDelete.id && !photoToDelete.id.startsWith('temp_')) {
-      await fetch('/api/admin/travel-photos', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+    if (photoToDelete.id && !photoToDelete.id.startsWith("temp_")) {
+      await fetch("/api/admin/travel-photos", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: photoToDelete.id }),
-      })
+      });
     }
-  }
+  };
 
   return (
     <div className="space-y-3">
       <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-6 transition-colors hover:border-gray-300">
         <Upload className="h-8 w-8 text-gray-300" />
         <span className="text-sm text-gray-400">
-          {uploading ? '上传中...' : '点击上传相册图片（可多选）'}
+          {uploading ? "上传中..." : "点击上传相册图片（可多选）"}
         </span>
         <input
           type="file"
@@ -145,9 +152,16 @@ export default function TravelPhotoUpload({ travelId, initialPhotos, onUpdate }:
       {photos.length > 0 && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {photos.map((photo, index) => (
-            <div key={photo.id || index} className="group relative rounded-lg border border-gray-200 bg-white">
+            <div
+              key={photo.id || index}
+              className="group relative rounded-lg border border-gray-200 bg-white"
+            >
               <div className="aspect-square overflow-hidden rounded-t-lg">
-                <img src={photo.url} alt={`Photo ${index + 1}`} className="h-full w-full object-cover" />
+                <img
+                  src={photo.url}
+                  alt={`Photo ${index + 1}`}
+                  className="h-full w-full object-cover"
+                />
               </div>
               <div className="p-2">
                 <input
@@ -172,5 +186,5 @@ export default function TravelPhotoUpload({ travelId, initialPhotos, onUpdate }:
         </div>
       )}
     </div>
-  )
+  );
 }

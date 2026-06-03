@@ -1,67 +1,67 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import type { Movie } from '@/lib/types'
-import { Star, Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
-import ImagePreview from '@/components/ImagePreview'
-import { DatePicker, ConfigProvider } from 'antd'
-import dayjs from 'dayjs'
-import 'dayjs/locale/zh-cn'
-import locale from 'antd/locale/zh_CN'
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import type { Movie } from "@/lib/types";
+import { Star, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import ImagePreview from "@/components/ImagePreview";
+import { DatePicker, ConfigProvider } from "antd";
+import dayjs from "dayjs";
+import "dayjs/locale/zh-cn";
+import locale from "antd/locale/zh_CN";
 
-dayjs.locale('zh-cn')
+dayjs.locale("zh-cn");
 
 export default function MoviesPage() {
-  const [movies, setMovies] = useState<Movie[]>([])
-  const [loading, setLoading] = useState(true)
-  const [yearFilter, setYearFilter] = useState('all')
-  const [monthFilter, setMonthFilter] = useState('all')
-  const [currentPage, setCurrentPage] = useState(1)
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [yearFilter, setYearFilter] = useState("all");
+  const [monthFilter, setMonthFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetch('/api/movies')
+    fetch("/api/movies")
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) setMovies(data)
-        setLoading(false)
+        if (Array.isArray(data)) setMovies(data);
+        setLoading(false);
       })
-      .catch(() => setLoading(false))
-  }, [])
+      .catch(() => setLoading(false));
+  }, []);
 
   const filtered = movies.filter((m) => {
-    if (yearFilter !== 'all') {
-      const watchedMatch = m.watched_at?.startsWith(yearFilter)
-      if (!watchedMatch) return false
+    if (yearFilter !== "all") {
+      const watchedMatch = m.watched_at?.startsWith(yearFilter);
+      if (!watchedMatch) return false;
     }
-    if (monthFilter !== 'all') {
-      const fullMonthFilter = `${yearFilter}-${monthFilter}`
-      const watchedMatch = m.watched_at?.startsWith(fullMonthFilter)
-      if (!watchedMatch) return false
+    if (monthFilter !== "all") {
+      const fullMonthFilter = `${yearFilter}-${monthFilter}`;
+      const watchedMatch = m.watched_at?.startsWith(fullMonthFilter);
+      if (!watchedMatch) return false;
     }
-    return true
-  })
+    return true;
+  });
 
-  const ITEMS_PER_PAGE = 12
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
+  const ITEMS_PER_PAGE = 12;
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginatedMovies = filtered.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  )
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`h-3.5 w-3.5 ${i < rating ? 'fill-accent-400 text-accent-400' : 'text-gray-200'}`}
+        className={`h-3.5 w-3.5 ${i < rating ? "fill-accent-400 text-accent-400" : "text-gray-200"}`}
       />
-    ))
-  }
+    ));
+  };
 
   return (
     <div className="space-y-6">
@@ -74,19 +74,22 @@ export default function MoviesPage() {
           <ConfigProvider locale={locale}>
             <DatePicker
               picker="year"
-              value={yearFilter === 'all' ? null : dayjs(yearFilter)}
+              value={yearFilter === "all" ? null : dayjs(yearFilter)}
               onChange={(date) => {
-                setYearFilter(date ? date.format('YYYY') : 'all')
-                setCurrentPage(1)
+                setYearFilter(date ? date.format("YYYY") : "all");
+                setCurrentPage(1);
               }}
               className="rounded-lg"
               placeholder="选择年份"
               allowClear
             />
           </ConfigProvider>
-          {yearFilter !== 'all' && (
+          {yearFilter !== "all" && (
             <button
-              onClick={() => { setYearFilter('all'); setCurrentPage(1) }}
+              onClick={() => {
+                setYearFilter("all");
+                setCurrentPage(1);
+              }}
               className="text-sm text-gray-400 hover:text-gray-600"
             >
               清除
@@ -97,19 +100,23 @@ export default function MoviesPage() {
           <ConfigProvider locale={locale}>
             <DatePicker
               picker="month"
-              value={monthFilter === 'all' ? null : dayjs(`${yearFilter}-${monthFilter}`)}
+              value={
+                monthFilter === "all"
+                  ? null
+                  : dayjs(`${yearFilter}-${monthFilter}`)
+              }
               onChange={(date) => {
-                setMonthFilter(date ? date.format('MM') : 'all')
-                setCurrentPage(1)
+                setMonthFilter(date ? date.format("MM") : "all");
+                setCurrentPage(1);
               }}
               className="rounded-lg"
               placeholder="选择月份"
               format="MM"
             />
           </ConfigProvider>
-          {monthFilter !== 'all' && (
+          {monthFilter !== "all" && (
             <button
-              onClick={() => setMonthFilter('all')}
+              onClick={() => setMonthFilter("all")}
               className="text-sm text-gray-400 hover:text-gray-600"
             >
               清除
@@ -130,53 +137,58 @@ export default function MoviesPage() {
         <>
           <div className="grid gap-6 pt-4 sm:grid-cols-2 lg:grid-cols-4">
             {paginatedMovies.map((movie) => (
-            <Link
-              key={movie.id}
-              href={`/movies/${movie.slug || movie.id}`}
-              className="group overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
-            >
-              <div className="aspect-[2/3] bg-gray-100 overflow-hidden relative">
-                {movie.poster_url ? (
-                  <ImagePreview
-                    src={movie.poster_url}
-                    alt={movie.title}
-                    className="h-full w-full"
-                    aspectRatio="2/3"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    enablePreview={false}
-                    hoverScale
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-gray-300 text-4xl">
-                    🎬
-                  </div>
-                )}
-              </div>
-              <div className="p-3 space-y-1.5">
-                <h3 className="font-semibold text-[#1A1A1A] group-hover:text-accent-600 transition-colors line-clamp-1">
-                  {movie.title}
-                </h3>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  {movie.year && (
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {movie.year}
-                    </span>
+              <Link
+                key={movie.id}
+                href={`/movies/${movie.slug || movie.id}`}
+                className="group overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md"
+              >
+                <div className="aspect-[2/3] bg-gray-100 overflow-hidden relative">
+                  {movie.poster_url ? (
+                    <ImagePreview
+                      src={movie.poster_url}
+                      alt={movie.title}
+                      className="h-full w-full"
+                      aspectRatio="2/3"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      enablePreview={false}
+                      hoverScale
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-gray-300 text-4xl">
+                      🎬
+                    </div>
                   )}
+                </div>
+                <div className="p-3 space-y-1.5">
+                  <h3 className="font-semibold text-[#1A1A1A] group-hover:text-accent-600 transition-colors line-clamp-1">
+                    {movie.title}
+                  </h3>
+                  <div className="flex items-center gap-2 text-xs text-gray-400">
+                    {movie.year && (
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {movie.year}
+                      </span>
+                    )}
+                  </div>
                   {movie.overview && (
                     <p className="text-xs text-gray-500 line-clamp-2">
                       {movie.overview}
                     </p>
                   )}
+                  {movie.rating && (
+                    <div className="flex items-center gap-0.5 pt-0.5">
+                      {renderStars(movie.rating)}
+                    </div>
+                  )}
+                  {movie.review && (
+                    <p className="text-xs text-gray-400 italic line-clamp-2 border-l-2 border-gray-200 pl-2">
+                      {movie.review}
+                    </p>
+                  )}
                 </div>
-                {movie.rating && (
-                  <div className="flex items-center gap-0.5 pt-0.5">
-                    {renderStars(movie.rating)}
-                  </div>
-                )}
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
           </div>
 
           {totalPages > 1 && (
@@ -191,19 +203,21 @@ export default function MoviesPage() {
               </button>
 
               <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`h-9 w-9 rounded-lg text-sm font-medium transition-colors ${
-                      currentPage === page
-                        ? 'bg-[#1A1A1A] text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`h-9 w-9 rounded-lg text-sm font-medium transition-colors ${
+                        currentPage === page
+                          ? "bg-[#1A1A1A] text-white"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ),
+                )}
               </div>
 
               <button
@@ -218,10 +232,12 @@ export default function MoviesPage() {
           )}
 
           <p className="text-center text-sm text-gray-400 pt-4">
-            共 {filtered.length} 部电影，显示 {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} 部
+            共 {filtered.length} 部电影，显示{" "}
+            {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+            {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} 部
           </p>
         </>
       )}
     </div>
-  )
+  );
 }

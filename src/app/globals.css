@@ -13,6 +13,16 @@
   }
 }
 
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer components {
   .prose-custom {
     @apply prose prose-gray max-w-none prose-headings:font-semibold prose-headings:text-[#1A1A1A] prose-p:leading-relaxed prose-a:text-accent-600 prose-img:rounded-xl;

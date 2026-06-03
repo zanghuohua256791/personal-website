@@ -1,69 +1,95 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabase";
+import { getKeyFromUrl } from "@/lib/r2";
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const travelId = searchParams.get('travel_id')
+  const { searchParams } = new URL(request.url);
+  const travelId = searchParams.get("travel_id");
 
   let query = supabaseAdmin
-    .from('travel_photos')
-    .select('*')
-    .order('sort_order', { ascending: true })
+    .from("travel_photos")
+    .select("*")
+    .order("sort_order", { ascending: true });
 
   if (travelId) {
-    query = query.eq('travel_id', travelId)
+    query = query.eq("travel_id", travelId);
   }
 
-  const { data, error } = await query
+  const { data, error } = await query;
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data)
+  return NextResponse.json(data);
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json()
+  const body = await request.json();
   const { data, error } = await supabaseAdmin
-    .from('travel_photos')
+    .from("travel_photos")
     .insert(body)
     .select()
-    .single()
+    .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data)
+  return NextResponse.json(data);
 }
 
 export async function PUT(request: NextRequest) {
-  const { id, ...body } = await request.json()
+  const { id, ...body } = await request.json();
   const { data, error } = await supabaseAdmin
-    .from('travel_photos')
+    .from("travel_photos")
     .update(body)
-    .eq('id', id)
+    .eq("id", id)
     .select()
-    .single()
+    .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data)
+  return NextResponse.json(data);
 }
 
 export async function DELETE(request: NextRequest) {
-  const { id } = await request.json()
-  const { error } = await supabaseAdmin
-    .from('travel_photos')
-    .delete()
-    .eq('id', id)
+  const { id } = await request.json();
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  const { data: photo } = await supabaseAdmin
+    .from("travel_photos")
+    .select("url")
+    .eq("id", id)
+    .single();
+
+  if (photo) {
+    const key = getKeyFromUrl(photo.url);
+    if (key) {
+      try {
+        const { DeleteObjectCommand } = await import("@aws-sdk/client-s3");
+        const { r2Client } = await import("@/lib/r2");
+        await r2Client.send(
+          new DeleteObjectCommand({
+            Bucket: process.env.R2_BUCKET || "photo-album",
+            Key: key,
+          }),
+        );
+      } catch (err) {
+        console.error("Delete R2 file error:", err);
+      }
+    }
   }
 
-  return NextResponse.json({ success: true })
+  const { error } = await supabaseAdmin
+    .from("travel_photos")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }
