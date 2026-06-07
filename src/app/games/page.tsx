@@ -14,6 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Search,
+  List,
 } from "lucide-react";
 import ImagePreview from "@/components/ImagePreview";
 import * as XLSX from "xlsx";
@@ -42,7 +44,7 @@ const platformOptions = [
   { value: "Switch", label: "Switch" },
 ];
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE_OPTIONS = [12, 24, 48];
 
 const formatPlayTime = (hours: number | null) => {
   if (!hours || hours === 0) return null;
@@ -62,6 +64,8 @@ export default function GamesPage() {
   const [platformFilter, setPlatformFilter] = useState("all");
   const [monthFilter, setMonthFilter] = useState("all");
   const [yearFilter, setYearFilter] = useState("2026");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [pageSize, setPageSize] = useState(24);
   const [showTimeline, setShowTimeline] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -71,17 +75,15 @@ export default function GamesPage() {
       .then((data) => {
         if (Array.isArray(data)) {
           const sorted = [...data].sort((a, b) => {
-            const aCompleted = a.completed_at
-              ? new Date(a.completed_at).getTime()
-              : 0;
-            const bCompleted = b.completed_at
-              ? new Date(b.completed_at).getTime()
-              : 0;
-            return (
-              bCompleted - aCompleted ||
-              new Date(b.updated_at).getTime() -
-                new Date(a.updated_at).getTime()
+            const aTime = Math.max(
+              a.completed_at ? new Date(a.completed_at).getTime() : 0,
+              a.started_at ? new Date(a.started_at).getTime() : 0
             );
+            const bTime = Math.max(
+              b.completed_at ? new Date(b.completed_at).getTime() : 0,
+              b.started_at ? new Date(b.started_at).getTime() : 0
+            );
+            return bTime - aTime;
           });
           setGames(sorted);
         }
@@ -105,18 +107,21 @@ export default function GamesPage() {
       const completedMatch = g.completed_at?.startsWith(fullMonthFilter);
       if (!startedMatch && !completedMatch) return false;
     }
+    if (searchQuery && !g.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
     return true;
   });
 
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filtered.length / pageSize);
   const paginatedGames = filtered.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
   );
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [statusFilter, platformFilter, monthFilter, yearFilter]);
+  }, [statusFilter, platformFilter, monthFilter, yearFilter, searchQuery, pageSize]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -290,13 +295,25 @@ export default function GamesPage() {
               </button>
             ))}
           </div>
-          <button
-            onClick={exportToExcel}
-            className="flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-80"
-          >
-            <Download className="h-4 w-4" />
-            导出Excel
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="搜索游戏名称..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="rounded-lg border border-gray-200 bg-white pl-10 pr-4 py-2 text-sm focus:border-gray-300 focus:outline-none"
+              />
+            </div>
+            <button
+              onClick={exportToExcel}
+              className="flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-80"
+            >
+              <Download className="h-4 w-4" />
+              导出Excel
+            </button>
+          </div>
         </div>
         
         <div className="flex flex-wrap items-center gap-4">
@@ -321,13 +338,25 @@ export default function GamesPage() {
             <ConfigProvider locale={locale}>
               <DatePicker
                 picker="year"
-                value={dayjs(yearFilter)}
-                onChange={(date) => setYearFilter(date ? date.format("YYYY") : "2026")}
+                value={yearFilter === "all" ? null : dayjs(yearFilter)}
+                onChange={(date) => {
+                  const newYear = date ? date.format("YYYY") : "all";
+                  setYearFilter(newYear);
+                  if (newYear === "all") setMonthFilter("all");
+                }}
                 className="rounded-lg"
                 placeholder="选择年份"
-                allowClear={false}
+                allowClear
               />
             </ConfigProvider>
+            {yearFilter !== "all" && (
+              <button
+                onClick={() => { setYearFilter("all"); setMonthFilter("all"); }}
+                className="text-sm text-gray-400 hover:text-gray-600"
+              >
+                清除
+              </button>
+            )}
           </div>
           
           <div className="flex items-center gap-2">
@@ -494,8 +523,27 @@ export default function GamesPage() {
           )}
           
           <p className="text-center text-sm text-gray-400 pt-4">
-            共 {filtered.length} 款游戏，显示 {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} 款
+            共 {filtered.length} 款游戏，显示 {(currentPage - 1) * pageSize + 1}-{Math.min(currentPage * pageSize, filtered.length)} 款
           </p>
+          <div className="flex items-center justify-center gap-2 pt-2">
+            <List className="h-4 w-4 text-gray-400" />
+            <span className="text-sm text-gray-400">每页</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="rounded-md border border-gray-200 px-2 py-1 text-sm text-gray-600 outline-none focus:border-gray-400"
+            >
+              {ITEMS_PER_PAGE_OPTIONS.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            <span className="text-sm text-gray-400">条</span>
+          </div>
         </>
       )}
     </div>

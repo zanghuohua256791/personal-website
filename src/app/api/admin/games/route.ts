@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
 
   if (sort === 'completed') {
     query = query.order('completed_at', { ascending: false }).order('updated_at', { ascending: false })
+  } else if (sort === 'started') {
+    query = query.order('started_at', { ascending: false }).order('updated_at', { ascending: false })
   } else {
     query = query.order('updated_at', { ascending: false })
   }

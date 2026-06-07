@@ -15,7 +15,7 @@ import locale from "antd/locale/zh_CN";
 
 dayjs.locale("zh-cn");
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 const emptyGameForm = {
   title: "",
@@ -86,6 +86,7 @@ export default function GameAdminPage() {
   const [showForm, setShowForm] = useState(false);
   const [yearFilter, setYearFilter] = useState(dayjs().year());
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const [searchResults, setSearchResults] = useState<SteamSearchResult[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -105,8 +106,8 @@ export default function GameAdminPage() {
   });
 
   const paginatedGames = filteredGames.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
   );
 
   const handleSearchInput = useCallback((value: string) => {
@@ -181,7 +182,7 @@ export default function GameAdminPage() {
   };
 
   const fetchGames = async () => {
-    const res = await fetch("/api/admin/games?sort=completed");
+    const res = await fetch("/api/admin/games?sort=started");
     const data = await res.json();
     if (Array.isArray(data)) setGames(data);
     setLoading(false);
@@ -582,31 +583,21 @@ export default function GameAdminPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-left">
-                  <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">
-                    游戏
-                  </th>
-                  <th className="hidden sm:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">
-                    平台
-                  </th>
-                  <th className="hidden md:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap min-w-[200px]">
-                    分类
-                  </th>
-                  <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">
-                    状态
-                  </th>
-                  <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">
-                    评分
-                  </th>
-                  <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">
+                  <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap max-w-[100px] sm:max-w-[100px]">游戏</th>
+                  <th className="hidden sm:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap max-w-[90px]">平台</th>
+                  <th className="hidden md:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap max-w-[100px]">分类</th>
+                  <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap max-w-[80px]">状态</th>
+                  <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap max-w-[80px]">评分</th>
+                  <th className="px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap max-w-[60px]">
                     游玩时间
                   </th>
-                  <th className="hidden md:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">
+                  <th className="hidden md:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap max-w-[90px]">
                     开始日期
                   </th>
-                  <th className="hidden md:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap">
+                  <th className="hidden md:table-cell px-3 sm:px-6 py-3 font-medium text-gray-500 whitespace-nowrap max-w-[90px]">
                     通关日期
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-right font-medium text-gray-500 whitespace-nowrap">
+                  <th className="px-3 sm:px-6 py-3 text-right font-medium text-gray-500 whitespace-nowrap w-[80px]">
                     操作
                   </th>
                 </tr>
@@ -614,16 +605,15 @@ export default function GameAdminPage() {
               <tbody className="divide-y divide-gray-50">
                 {paginatedGames.map((game) => (
                   <tr key={game.id} className="hover:bg-gray-50">
-                    <td
-                      className="px-3 sm:px-6 py-3 font-medium text-[#1A1A1A] whitespace-nowrap max-w-[120px] sm:max-w-none truncate"
-                      title={game.title}
-                    >
-                      {game.title}
+                    <td className="px-3 sm:px-6 py-3 font-medium text-[#1A1A1A] max-w-[100px] sm:max-w-[100px]" title={game.title}>
+                      <div className="line-clamp-3">
+                          {game.title}
+                      </div>
                     </td>
-                    <td className="hidden sm:table-cell px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap">
+                    <td className="hidden sm:table-cell px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap truncate max-w-[90px]">
                       {game.platform?.join(", ") || "-"}
                     </td>
-                    <td className="hidden md:table-cell px-3 sm:px-6 py-3">
+                    <td className="hidden md:table-cell px-3 sm:px-6 py-3 max-w-[100px]">
                       <div className="flex flex-wrap gap-1">
                         {(game.categories || []).slice(0, 3).map((cat) => (
                           <span
@@ -640,14 +630,14 @@ export default function GameAdminPage() {
                         )}
                       </div>
                     </td>
-                    <td className="px-3 sm:px-6 py-3 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-3 whitespace-nowrap max-w-[80px] truncate">
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${GAME_STATUS_COLORS[game.status]}`}
                       >
                         {GAME_STATUS_MAP[game.status]}
                       </span>
                     </td>
-                    <td className="px-3 sm:px-6 py-3 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-3 whitespace-nowrap max-w-[80px]">
                       {game.rating ? (
                         <span className="flex items-center gap-0.5">
                           {Array.from({ length: game.rating }, (_, i) => (
@@ -661,23 +651,23 @@ export default function GameAdminPage() {
                         <span className="text-gray-300">-</span>
                       )}
                     </td>
-                    <td className="px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap max-w-[60px] truncate">
                       {formatPlayTime(game.play_time || 0)}
                     </td>
-                    <td className="hidden md:table-cell px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap">
+                    <td className="hidden md:table-cell px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap max-w-[90px] truncate">
                       {game.started_at ? (
                         <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
+                          <Calendar className="h-3 w-3 flex-shrink-0" />
                           {formatDate(game.started_at)}
                         </span>
                       ) : (
                         "-"
                       )}
                     </td>
-                    <td className="hidden md:table-cell px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap">
+                    <td className="hidden md:table-cell px-3 sm:px-6 py-3 text-gray-500 whitespace-nowrap max-w-[90px] truncate">
                       {game.completed_at ? (
                         <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
+                          <Calendar className="h-3 w-3 flex-shrink-0" />
                           {formatDate(game.completed_at)}
                         </span>
                       ) : (
@@ -721,10 +711,15 @@ export default function GameAdminPage() {
             <div className="mt-4 flex justify-center">
               <Pagination
                 current={currentPage}
-                pageSize={PAGE_SIZE}
+                pageSize={pageSize}
                 total={filteredGames.length}
                 onChange={(page) => setCurrentPage(page)}
-                showSizeChanger={false}
+                onShowSizeChange={(_, size) => {
+                  setPageSize(size);
+                  setCurrentPage(1);
+                }}
+                showSizeChanger
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
                 showQuickJumper={false}
               />
             </div>

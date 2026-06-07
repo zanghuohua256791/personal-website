@@ -8,8 +8,9 @@ const R2_BUCKET = process.env.R2_BUCKET || 'photo-album'
 export const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || ''
 
 if (!R2_ENDPOINT || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
-  console.warn('[R2] Missing environment variables:', {
+  console.error('[R2] Missing required environment variables:', {
     endpoint: !!R2_ENDPOINT,
+    endpointValue: R2_ENDPOINT,
     accessKey: !!R2_ACCESS_KEY_ID,
     secretKey: !!R2_SECRET_ACCESS_KEY,
   })
@@ -17,7 +18,7 @@ if (!R2_ENDPOINT || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
 
 export const r2Client = new S3Client({
   region: 'auto',
-  endpoint: R2_ENDPOINT,
+  endpoint: R2_ENDPOINT || undefined,
   credentials: {
     accessKeyId: R2_ACCESS_KEY_ID,
     secretAccessKey: R2_SECRET_ACCESS_KEY,
