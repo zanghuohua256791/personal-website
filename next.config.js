@@ -24,7 +24,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "r2.tiexiaochui.xyz",
+        hostname: "r2.tiechui.shop",
       },
     ],
     minimumCacheTTL: 60 * 60 * 24 * 30,
