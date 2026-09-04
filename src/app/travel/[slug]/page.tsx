@@ -8,7 +8,8 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import ImagePreview from '@/components/ImagePreview'
 
-// export const revalidate = 3600
+// 每 1 小时重新生成页面，避免数据库更新后页面仍展示旧 URL
+export const revalidate = 3600
 
 async function getTravel(slug: string): Promise<Travel | null> {
   const { data } = await supabase

@@ -5,7 +5,8 @@ import type { Travel } from '@/lib/types'
 import { Calendar, MapPin } from 'lucide-react'
 import ImagePreview from '@/components/ImagePreview'
 
-// export const revalidate = 3600
+// 每 1 小时重新生成页面，避免数据库更新后页面仍展示旧 URL
+export const revalidate = 3600
 
 async function getTravels(): Promise<Travel[]> {
   const { data } = await supabase
