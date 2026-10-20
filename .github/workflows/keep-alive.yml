@@ -15,19 +15,19 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 设置 Node.js
-        uses: actions/setup-node@v4
+      - name: 设置 Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: '20'
+          bun-version: latest
 
       - name: 安装依赖
-        run: npm install
+        run: bun install
 
       - name: 执行保活脚本
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        run: npx ts-node --esm scripts/keep-alive.ts
+        run: bun run scripts/keep-alive.ts
 
       - name: 记录执行时间
         if: always()
