@@ -39,7 +39,7 @@ async function keepAlive(): Promise<void> {
   // 方法2: 数据库查询保活（查询不存在的表，预期报错但保持连接活跃）
   try {
     const { error } = await supabase
-      .from(`_keep_alive_test_${Date.now()}`)
+      .from(`movies`)
       .select('*')
       .limit(1);
 
